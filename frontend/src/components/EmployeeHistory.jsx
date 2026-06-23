@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { mergeConsecutiveSchedules, calculateHours } from '../utils/scheduleUtils';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -44,11 +45,14 @@ function EmployeeHistory({ employee, onClose }) {
       console.log('전체 스케줄:', response.data.length);
 
       // 해당 알바생의 스케줄만 필터링
-      const employeeSchedules = response.data
-        .filter(s => s.employee_id === employee.id)
-        .sort((a, b) => new Date(b.start_time) - new Date(a.start_time));
+      const filtered = response.data.filter(s => s.employee_id === employee.id);
+      
+      // 연속된 스케줄 병합
+      const merged = mergeConsecutiveSchedules(filtered);
+      
+      const employeeSchedules = merged.sort((a, b) => new Date(b.start_time) - new Date(a.start_time));
 
-      console.log('해당 알바생 스케줄:', employeeSchedules.length);
+      console.log('해당 알바생 스케줄 (병합 후):', employeeSchedules.length);
       console.log('스케줄 데이터 샘플:', employeeSchedules.slice(0, 2));
 
       setHistory(employeeSchedules);
@@ -61,7 +65,7 @@ function EmployeeHistory({ employee, onClose }) {
 
   const formatDate = (dateString) => {
     // 로컬 시간 문자열을 그대로 파싱 (타임존 변환 방지)
-    const parts = dateString.split(/[T-: ]/);
+    const parts = dateString.split(/[T\-: ]/);
     const year = parseInt(parts[0]);
     const month = parseInt(parts[1]) - 1;
     const day = parseInt(parts[2]);
@@ -77,38 +81,11 @@ function EmployeeHistory({ employee, onClose }) {
 
   const formatTime = (dateString) => {
     // 로컬 시간 문자열을 그대로 파싱 (타임존 변환 방지)
-    const parts = dateString.split(/[T-: ]/);
+    const parts = dateString.split(/[T\-: ]/);
     const hours = String(parts[3] || '00').padStart(2, '0');
     const minutes = String(parts[4] || '00').padStart(2, '0');
     
     return `${hours}:${minutes}`;
-  };
-
-  const calculateHours = (start, end) => {
-    // 로컬 시간 문자열 직접 파싱
-    const startParts = start.split(/[T-: ]/);
-    const endParts = end.split(/[T-: ]/);
-    
-    const startDate = new Date(
-      parseInt(startParts[0]),
-      parseInt(startParts[1]) - 1,
-      parseInt(startParts[2]),
-      parseInt(startParts[3] || 0),
-      parseInt(startParts[4] || 0),
-      parseInt(startParts[5] || 0)
-    );
-    
-    const endDate = new Date(
-      parseInt(endParts[0]),
-      parseInt(endParts[1]) - 1,
-      parseInt(endParts[2]),
-      parseInt(endParts[3] || 0),
-      parseInt(endParts[4] || 0),
-      parseInt(endParts[5] || 0)
-    );
-    
-    const diff = endDate - startDate;
-    return (diff / (1000 * 60 * 60)).toFixed(1);
   };
 
   const calculatePay = (start, end) => {
@@ -117,7 +94,7 @@ function EmployeeHistory({ employee, onClose }) {
   };
 
   const totalHours = history.reduce((sum, item) => 
-    sum + parseFloat(calculateHours(item.start_time, item.end_time)), 0
+    sum + calculateHours(item.start_time, item.end_time), 0
   );
 
   const totalPay = history.reduce((sum, item) => 
@@ -213,7 +190,7 @@ function EmployeeHistory({ employee, onClose }) {
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {calculateHours(item.start_time, item.end_time)}시간
+                        {calculateHours(item.start_time, item.end_time).toFixed(1)}시간
                       </p>
                       <p className="font-semibold text-blue-600 dark:text-blue-400">
                         {calculatePay(item.start_time, item.end_time).toLocaleString()}원

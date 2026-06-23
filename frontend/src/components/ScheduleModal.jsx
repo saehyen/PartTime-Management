@@ -46,6 +46,18 @@ function ScheduleModal({ employees, schedule, selectInfo, onSave, onDelete, onCl
     }
   }, [schedule, selectInfo, employees, preSelectedEmployeeId]);
 
+  // ESC 키로 모달 닫기
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [onClose]);
+
   const toggleEmployee = (empId) => {
     if (schedule) return; // 수정 모드에서는 직원 변경 불가
     

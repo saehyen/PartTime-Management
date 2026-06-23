@@ -1,11 +1,16 @@
 import { useMemo } from 'react';
+import { mergeConsecutiveSchedules, parseTime, formatTime } from '../utils/scheduleUtils';
 
 function DailyTimeline({ date, schedules, employees, onClose }) {
-  // 선택된 날짜의 스케줄만 필터링
+  // 선택된 날짜의 스케줄만 필터링 후 병합
   const daySchedules = useMemo(() => {
     const dateStr = date.toISOString().split('T')[0];
-    return schedules
-      .filter(s => s.start_time.startsWith(dateStr))
+    const filtered = schedules.filter(s => s.start_time.startsWith(dateStr));
+    
+    // 연속된 스케줄 병합
+    const merged = mergeConsecutiveSchedules(filtered);
+    
+    return merged
       .map(s => {
         const employee = employees.find(e => e.id === s.employee_id);
         return {
@@ -16,22 +21,6 @@ function DailyTimeline({ date, schedules, employees, onClose }) {
       })
       .sort((a, b) => a.start_time.localeCompare(b.start_time));
   }, [date, schedules, employees]);
-
-  // 시간을 파싱하는 함수
-  const parseTime = (timeString) => {
-    const parts = timeString.split(/[T-: ]/);
-    const hours = parseInt(parts[3] || 0);
-    const minutes = parseInt(parts[4] || 0);
-    return hours + minutes / 60;
-  };
-
-  // 시간을 표시 형식으로 변환
-  const formatTime = (timeString) => {
-    const parts = timeString.split(/[T-: ]/);
-    const hours = String(parts[3] || '00').padStart(2, '0');
-    const minutes = String(parts[4] || '00').padStart(2, '0');
-    return `${hours}:${minutes}`;
-  };
 
   // 시간대 생성 (06:00 ~ 24:00)
   const timeSlots = useMemo(() => {

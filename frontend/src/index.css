@@ -115,17 +115,35 @@ body {
   background-color: rgba(239, 68, 68, 0.1);
 }
 
-/* 빨간날 (공휴일) */
+/* 빨간날 (공휴일) - 다크모드 시인성 개선 */
 .fc-day.holiday {
   background-color: rgba(239, 68, 68, 0.1);
 }
 
 .dark .fc-day.holiday {
-  background-color: rgba(239, 68, 68, 0.15);
+  background-color: rgba(239, 68, 68, 0.2);
 }
 
 .fc-day.holiday .fc-daygrid-day-number {
   color: #ef4444;
+  font-weight: 600;
+}
+
+.dark .fc-day.holiday .fc-daygrid-day-number {
+  color: #fca5a5;
+  font-weight: 700;
+  text-shadow: 0 0 8px rgba(252, 165, 165, 0.3);
+}
+
+/* 주말 스타일 - 다크모드 개선 */
+.fc-day-sat .fc-daygrid-day-number,
+.fc-day-sun .fc-daygrid-day-number {
+  color: #dc2626;
+}
+
+.dark .fc-day-sat .fc-daygrid-day-number,
+.dark .fc-day-sun .fc-daygrid-day-number {
+  color: #fca5a5;
   font-weight: 600;
 }
 

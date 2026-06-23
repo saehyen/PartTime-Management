@@ -4,6 +4,8 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import ScheduleModal from './ScheduleModal';
+import DayViewMatrix from './DayViewMatrix';
+import { mergeConsecutiveSchedules } from '../utils/scheduleUtils';
 
 // 한국 공휴일 데이터 (2024-2026)
 const HOLIDAYS = {
@@ -75,6 +77,7 @@ function Calendar({
   const [showModal, setShowModal] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState(null);
   const [selectedInfo, setSelectedInfo] = useState(null);
+  const [currentView, setCurrentView] = useState('timeGridWeek');
   const calendarRef = useRef(null);
 
   // 공휴일을 캘린더에 표시
@@ -94,35 +97,41 @@ function Calendar({
   }, [schedules]);
 
   // 스케줄 데이터를 FullCalendar 이벤트 형식으로 변환
-  const events = schedules.map(schedule => {
-    // 로컬 시간 문자열을 Date 객체로 변환 (타임존 변환 방지)
-    const parseLocalTime = (timeString) => {
-      // "2024-06-23T10:00:00" 형식을 파싱
-      const parts = timeString.split(/[T-: ]/);
-      return new Date(
-        parseInt(parts[0]), // year
-        parseInt(parts[1]) - 1, // month (0-indexed)
-        parseInt(parts[2]), // day
-        parseInt(parts[3] || 0), // hour
-        parseInt(parts[4] || 0), // minute
-        parseInt(parts[5] || 0)  // second
-      );
-    };
+  const events = (() => {
+    // 연속된 스케줄 병합
+    const mergedSchedules = mergeConsecutiveSchedules(schedules);
+    
+    return mergedSchedules.map(schedule => {
+      // 로컬 시간 문자열을 Date 객체로 변환 (타임존 변환 방지)
+      const parseLocalTime = (timeString) => {
+        // "2024-06-23T10:00:00" 형식을 파싱
+        const parts = timeString.split(/[T\-: ]/);
+        return new Date(
+          parseInt(parts[0]), // year
+          parseInt(parts[1]) - 1, // month (0-indexed)
+          parseInt(parts[2]), // day
+          parseInt(parts[3] || 0), // hour
+          parseInt(parts[4] || 0), // minute
+          parseInt(parts[5] || 0)  // second
+        );
+      };
 
-    return {
-      id: schedule.id,
-      title: `${schedule.employee_name}`,
-      start: parseLocalTime(schedule.start_time),
-      end: parseLocalTime(schedule.end_time),
-      backgroundColor: schedule.color,
-      borderColor: schedule.color,
-      extendedProps: {
-        employeeId: schedule.employee_id,
-        employeeName: schedule.employee_name,
-        hourlyRate: schedule.hourly_rate
-      }
-    };
-  });
+      return {
+        id: schedule.id,
+        title: `${schedule.employee_name}`,
+        start: parseLocalTime(schedule.start_time),
+        end: parseLocalTime(schedule.end_time),
+        backgroundColor: schedule.color,
+        borderColor: schedule.color,
+        extendedProps: {
+          employeeId: schedule.employee_id,
+          employeeName: schedule.employee_name,
+          hourlyRate: schedule.hourly_rate,
+          mergedIds: schedule.merged_ids // 병합된 ID들
+        }
+      };
+    });
+  })();
 
   // 날짜 범위 선택 (드래그)
   const handleDateSelect = (selectInfo) => {
@@ -226,6 +235,11 @@ function Calendar({
   // 날짜 변경 감지
   const handleDatesSet = (dateInfo) => {
     onDateChange(dateInfo.start);
+    // 현재 뷰 타입 저장
+    const calendarApi = calendarRef.current?.getApi();
+    if (calendarApi) {
+      setCurrentView(calendarApi.view.type);
+    }
   };
 
   // 날짜 셀 클릭 핸들러
@@ -286,55 +300,83 @@ function Calendar({
           </div>
         </div>
       )}
-      <FullCalendar
-        ref={calendarRef}
-        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-        initialView="timeGridWeek"
-        headerToolbar={{
-          left: 'prev,next today',
-          center: 'title',
-          right: 'dayGridMonth,timeGridWeek,timeGridDay'
-        }}
-        locale="en"
-        timeZone="local"
-        buttonText={{
-          today: 'Today',
-          month: 'Month',
-          week: 'Week',
-          day: 'Day'
-        }}
-        firstDay={1}
-        height="auto"
-        slotMinTime={storeHours?.open || '00:00:00'}
-        slotMaxTime={storeHours?.close || '24:00:00'}
-        allDaySlot={false}
-        selectable={true}
-        selectMirror={true}
-        editable={true}
-        eventResizableFromStart={true}
-        events={events}
-        select={handleDateSelect}
-        eventClick={handleEventClick}
-        eventDrop={handleEventDrop}
-        eventResize={handleEventResize}
-        datesSet={handleDatesSet}
-        dateClick={handleDateClick}
-        eventContent={renderEventContent}
-        eventOrder="start,-duration,title"
-        slotDuration="00:30:00"
-        snapDuration="00:15:00"
-        dayHeaderFormat={{
-          weekday: 'short',
-          day: 'numeric'
-        }}
-        dayCellDidMount={(info) => {
-          const dateStr = info.date.toISOString().split('T')[0];
-          if (HOLIDAYS[dateStr]) {
-            info.el.classList.add('holiday');
-            info.el.setAttribute('title', HOLIDAYS[dateStr]);
-          }
-        }}
-      />
+      
+      {/* 일간 뷰일 때 매트릭스 표시 */}
+      {currentView === 'timeGridDay' ? (
+        <div>
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Daily Schedule Matrix
+            </h3>
+            <button
+              onClick={() => {
+                const calendarApi = calendarRef.current?.getApi();
+                if (calendarApi) {
+                  calendarApi.changeView('timeGridWeek');
+                }
+              }}
+              className="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+            >
+              Back to Week View
+            </button>
+          </div>
+          <DayViewMatrix
+            date={calendarRef.current?.getApi()?.getDate() || new Date()}
+            schedules={schedules}
+            employees={employees}
+          />
+        </div>
+      ) : (
+        <FullCalendar
+          ref={calendarRef}
+          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+          initialView="timeGridWeek"
+          headerToolbar={{
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+          }}
+          locale="en"
+          timeZone="local"
+          buttonText={{
+            today: 'Today',
+            month: 'Month',
+            week: 'Week',
+            day: 'Day'
+          }}
+          firstDay={1}
+          height="auto"
+          slotMinTime={storeHours?.open || '00:00:00'}
+          slotMaxTime={storeHours?.close || '24:00:00'}
+          allDaySlot={false}
+          selectable={true}
+          selectMirror={true}
+          editable={true}
+          eventResizableFromStart={true}
+          events={events}
+          select={handleDateSelect}
+          eventClick={handleEventClick}
+          eventDrop={handleEventDrop}
+          eventResize={handleEventResize}
+          datesSet={handleDatesSet}
+          dateClick={handleDateClick}
+          eventContent={renderEventContent}
+          eventOrder="start,-duration,title"
+          slotDuration="00:30:00"
+          snapDuration="00:15:00"
+          dayHeaderFormat={{
+            weekday: 'short',
+            day: 'numeric'
+          }}
+          dayCellDidMount={(info) => {
+            const dateStr = info.date.toISOString().split('T')[0];
+            if (HOLIDAYS[dateStr]) {
+              info.el.classList.add('holiday');
+              info.el.setAttribute('title', HOLIDAYS[dateStr]);
+            }
+          }}
+        />
+      )}
 
       {showModal && (
         <ScheduleModal
