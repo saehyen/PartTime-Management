@@ -19,22 +19,25 @@ function EmployeeHistory({ employee, onClose }) {
     try {
       setLoading(true);
       
-      // 선택된 월의 첫날과 마지막 날 계산
+      // 선택된 월의 첫날과 마지막 날 계산 (로컬 시간 문자열로)
       const [year, month] = selectedMonth.split('-').map(Number);
-      const startDate = new Date(year, month - 1, 1);
-      const endDate = new Date(year, month, 0, 23, 59, 59);
+      
+      // 로컬 시간 문자열로 직접 생성 (타임존 변환 없이)
+      const startDate = `${year}-${String(month).padStart(2, '0')}-01T00:00:00`;
+      const lastDay = new Date(year, month, 0).getDate();
+      const endDate = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}T23:59:59`;
 
       console.log('근무 기록 조회:', {
         employee: employee.name,
         month: selectedMonth,
-        start: startDate.toISOString(),
-        end: endDate.toISOString()
+        start: startDate,
+        end: endDate
       });
 
       const response = await axios.get(`${API_URL}/schedules`, {
         params: {
-          start: startDate.toISOString(),
-          end: endDate.toISOString()
+          start: startDate,
+          end: endDate
         }
       });
 
@@ -46,6 +49,7 @@ function EmployeeHistory({ employee, onClose }) {
         .sort((a, b) => new Date(b.start_time) - new Date(a.start_time));
 
       console.log('해당 알바생 스케줄:', employeeSchedules.length);
+      console.log('스케줄 데이터 샘플:', employeeSchedules.slice(0, 2));
 
       setHistory(employeeSchedules);
     } catch (error) {
@@ -56,8 +60,13 @@ function EmployeeHistory({ employee, onClose }) {
   };
 
   const formatDate = (dateString) => {
-    // 타임존 없는 로컬 시간으로 파싱
-    const date = new Date(dateString);
+    // 로컬 시간 문자열을 그대로 파싱 (타임존 변환 방지)
+    const parts = dateString.split(/[T-: ]/);
+    const year = parseInt(parts[0]);
+    const month = parseInt(parts[1]) - 1;
+    const day = parseInt(parts[2]);
+    const date = new Date(year, month, day);
+    
     return date.toLocaleDateString('ko-KR', {
       year: 'numeric',
       month: 'long',
@@ -67,18 +76,37 @@ function EmployeeHistory({ employee, onClose }) {
   };
 
   const formatTime = (dateString) => {
-    // 타임존 없는 로컬 시간으로 파싱
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('ko-KR', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    });
+    // 로컬 시간 문자열을 그대로 파싱 (타임존 변환 방지)
+    const parts = dateString.split(/[T-: ]/);
+    const hours = String(parts[3] || '00').padStart(2, '0');
+    const minutes = String(parts[4] || '00').padStart(2, '0');
+    
+    return `${hours}:${minutes}`;
   };
 
   const calculateHours = (start, end) => {
-    const startDate = new Date(start);
-    const endDate = new Date(end);
+    // 로컬 시간 문자열 직접 파싱
+    const startParts = start.split(/[T-: ]/);
+    const endParts = end.split(/[T-: ]/);
+    
+    const startDate = new Date(
+      parseInt(startParts[0]),
+      parseInt(startParts[1]) - 1,
+      parseInt(startParts[2]),
+      parseInt(startParts[3] || 0),
+      parseInt(startParts[4] || 0),
+      parseInt(startParts[5] || 0)
+    );
+    
+    const endDate = new Date(
+      parseInt(endParts[0]),
+      parseInt(endParts[1]) - 1,
+      parseInt(endParts[2]),
+      parseInt(endParts[3] || 0),
+      parseInt(endParts[4] || 0),
+      parseInt(endParts[5] || 0)
+    );
+    
     const diff = endDate - startDate;
     return (diff / (1000 * 60 * 60)).toFixed(1);
   };

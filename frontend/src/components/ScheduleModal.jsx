@@ -17,6 +17,10 @@ function ScheduleModal({ employees, schedule, selectInfo, onSave, onDelete, onCl
   const [selectedEmployeeIds, setSelectedEmployeeIds] = useState([]);
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
+  const [isQuickAdd, setIsQuickAdd] = useState(false);
+  const [quickAddDate, setQuickAddDate] = useState('');
+  const [quickAddStartTime, setQuickAddStartTime] = useState('09:00');
+  const [quickAddEndTime, setQuickAddEndTime] = useState('18:00');
 
   useEffect(() => {
     if (schedule) {
@@ -24,6 +28,7 @@ function ScheduleModal({ employees, schedule, selectInfo, onSave, onDelete, onCl
       setSelectedEmployeeIds([schedule.employee_id]);
       setStartTime(fromISOString(schedule.start_time));
       setEndTime(fromISOString(schedule.end_time));
+      setIsQuickAdd(false);
     } else if (selectInfo) {
       // 추가 모드 - preSelectedEmployeeId가 있으면 사용
       if (preSelectedEmployeeId) {
@@ -33,6 +38,11 @@ function ScheduleModal({ employees, schedule, selectInfo, onSave, onDelete, onCl
       }
       setStartTime(toLocalISOString(selectInfo.start));
       setEndTime(toLocalISOString(selectInfo.end));
+      
+      // 빠른 추가 모드 기본값 설정
+      const startDate = new Date(selectInfo.start);
+      setQuickAddDate(startDate.toISOString().split('T')[0]);
+      setIsQuickAdd(false);
     }
   }, [schedule, selectInfo, employees, preSelectedEmployeeId]);
 
@@ -51,19 +61,39 @@ function ScheduleModal({ employees, schedule, selectInfo, onSave, onDelete, onCl
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (selectedEmployeeIds.length === 0 || !startTime || !endTime) {
-      alert('알바생을 선택하고 모든 시간 필드를 입력해주세요.');
+    if (selectedEmployeeIds.length === 0) {
+      alert('알바생을 선택해주세요.');
       return;
     }
 
-    if (new Date(startTime) >= new Date(endTime)) {
+    let finalStartTime, finalEndTime;
+
+    if (isQuickAdd) {
+      // 빠른 추가 모드: 날짜 + 시간
+      if (!quickAddDate || !quickAddStartTime || !quickAddEndTime) {
+        alert('날짜와 시간을 모두 입력해주세요.');
+        return;
+      }
+      finalStartTime = `${quickAddDate}T${quickAddStartTime}:00`;
+      finalEndTime = `${quickAddDate}T${quickAddEndTime}:00`;
+    } else {
+      // 일반 모드: datetime-local
+      if (!startTime || !endTime) {
+        alert('시작 시간과 종료 시간을 입력해주세요.');
+        return;
+      }
+      finalStartTime = startTime + ':00';
+      finalEndTime = endTime + ':00';
+    }
+
+    if (new Date(finalStartTime) >= new Date(finalEndTime)) {
       alert('종료 시간은 시작 시간보다 늦어야 합니다.');
       return;
     }
 
     const scheduleData = {
-      start_time: startTime + ':00',
-      end_time: endTime + ':00'
+      start_time: finalStartTime,
+      end_time: finalEndTime
     };
 
     if (schedule) {
@@ -84,9 +114,20 @@ function ScheduleModal({ employees, schedule, selectInfo, onSave, onDelete, onCl
   };
 
   const selectedEmployee = employees.find(e => e.id === parseInt(selectedEmployeeIds[0]));
-  const hours = startTime && endTime 
-    ? ((new Date(endTime) - new Date(startTime)) / (1000 * 60 * 60)).toFixed(1)
-    : 0;
+  
+  // 근무 시간 계산
+  const hours = (() => {
+    if (isQuickAdd && quickAddStartTime && quickAddEndTime) {
+      const [startH, startM] = quickAddStartTime.split(':').map(Number);
+      const [endH, endM] = quickAddEndTime.split(':').map(Number);
+      const startMinutes = startH * 60 + startM;
+      const endMinutes = endH * 60 + endM;
+      return ((endMinutes - startMinutes) / 60).toFixed(1);
+    } else if (startTime && endTime) {
+      return ((new Date(endTime) - new Date(startTime)) / (1000 * 60 * 60)).toFixed(1);
+    }
+    return 0;
+  })();
   
   // 여러 명 선택 시 총 비용 계산
   const totalPay = selectedEmployeeIds.reduce((sum, empId) => {
@@ -157,31 +198,93 @@ function ScheduleModal({ employees, schedule, selectInfo, onSave, onDelete, onCl
             )}
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              시작 시간
-            </label>
-            <input
-              type="datetime-local"
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
+          {!schedule && (
+            <div className="flex items-center gap-2 py-2 border-t border-gray-200 dark:border-gray-600">
+              <input
+                type="checkbox"
+                id="quickAdd"
+                checked={isQuickAdd}
+                onChange={(e) => setIsQuickAdd(e.target.checked)}
+                className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+              />
+              <label htmlFor="quickAdd" className="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer">
+                🚀 빠른 추가 모드 (하루 단위)
+              </label>
+            </div>
+          )}
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              종료 시간
-            </label>
-            <input
-              type="datetime-local"
-              value={endTime}
-              onChange={(e) => setEndTime(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-          </div>
+          {isQuickAdd ? (
+            // 빠른 추가 모드: 날짜 + 시간 범위
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  날짜
+                </label>
+                <input
+                  type="date"
+                  value={quickAddDate}
+                  onChange={(e) => setQuickAddDate(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    시작 시간
+                  </label>
+                  <input
+                    type="time"
+                    value={quickAddStartTime}
+                    onChange={(e) => setQuickAddStartTime(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    종료 시간
+                  </label>
+                  <input
+                    type="time"
+                    value={quickAddEndTime}
+                    onChange={(e) => setQuickAddEndTime(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+              </div>
+            </>
+          ) : (
+            // 일반 모드: datetime-local
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  시작 시간
+                </label>
+                <input
+                  type="datetime-local"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  종료 시간
+                </label>
+                <input
+                  type="datetime-local"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+            </>
+          )}
 
           {selectedEmployeeIds.length > 0 && hours > 0 && (
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-4">

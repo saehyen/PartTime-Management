@@ -41,14 +41,22 @@ function App() {
       const year = currentDate.getFullYear();
       const month = currentDate.getMonth();
       
-      // 전달 마지막 주부터 다음달 첫 주까지 포함 (캘린더 뷰에 보이는 모든 날짜)
-      const startDate = new Date(year, month - 1, 15); // 전달 중순
-      const endDate = new Date(year, month + 2, 15); // 다다음달 중순
+      // 전달 마지막 주부터 다음달 첫 주까지 포함 (로컬 시간 문자열로)
+      const startDate = new Date(year, month - 1, 15);
+      const endDate = new Date(year, month + 2, 15);
+      
+      // 로컬 시간 문자열로 변환 (타임존 변환 방지)
+      const formatLocalDate = (date) => {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}T00:00:00`;
+      };
 
       const response = await axios.get(`${API_URL}/schedules`, {
         params: { 
-          start: startDate.toISOString(), 
-          end: endDate.toISOString() 
+          start: formatLocalDate(startDate), 
+          end: formatLocalDate(endDate)
         }
       });
       setSchedules(response.data);
