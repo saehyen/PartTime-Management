@@ -2,12 +2,19 @@ import { useMemo } from 'react';
 import { mergeConsecutiveSchedules, parseTime, formatTime } from '../utils/scheduleUtils';
 
 function DayViewMatrix({ date, schedules, employees }) {
+  // date가 없으면 오늘 날짜 사용
+  const selectedDate = useMemo(() => {
+    return date instanceof Date ? date : new Date();
+  }, [date]);
+
   // 선택된 날짜의 스케줄 필터링 및 병합
   const daySchedules = useMemo(() => {
-    const dateStr = date.toISOString().split('T')[0];
-    const filtered = schedules.filter(s => s.start_time.startsWith(dateStr));
+    if (!schedules || schedules.length === 0) return [];
+    
+    const dateStr = selectedDate.toISOString().split('T')[0];
+    const filtered = schedules.filter(s => s.start_time && s.start_time.startsWith(dateStr));
     return mergeConsecutiveSchedules(filtered);
-  }, [date, schedules]);
+  }, [selectedDate, schedules]);
 
   // 시간대 생성 (06:00 ~ 24:00, 1시간 단위)
   const timeSlots = useMemo(() => {
@@ -21,6 +28,8 @@ function DayViewMatrix({ date, schedules, employees }) {
   // 각 알바생별 스케줄 매핑
   const employeeSchedules = useMemo(() => {
     const map = {};
+    if (!employees || employees.length === 0) return map;
+    
     employees.forEach(emp => {
       map[emp.id] = daySchedules.filter(s => s.employee_id === emp.id);
     });
@@ -70,20 +79,26 @@ function DayViewMatrix({ date, schedules, employees }) {
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full border-collapse text-sm">
-        <thead>
-          <tr className="bg-gray-100 dark:bg-gray-700">
-            <th className="border border-gray-300 dark:border-gray-600 p-2 text-left sticky left-0 bg-gray-100 dark:bg-gray-700 z-10 min-w-[120px]">
-              Employee
-            </th>
-            {timeSlots.map(hour => (
-              <th key={hour} className="border border-gray-300 dark:border-gray-600 p-2 text-center min-w-[60px]">
-                {String(hour).padStart(2, '0')}:00
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
+      {!employees || employees.length === 0 ? (
+        <div className="text-center py-8">
+          <p className="text-gray-500 dark:text-gray-400">No employees found</p>
+        </div>
+      ) : (
+        <>
+          <table className="w-full border-collapse text-sm">
+            <thead>
+              <tr className="bg-gray-100 dark:bg-gray-700">
+                <th className="border border-gray-300 dark:border-gray-600 p-2 text-left sticky left-0 bg-gray-100 dark:bg-gray-700 z-10 min-w-[120px]">
+                  Employee
+                </th>
+                {timeSlots.map(hour => (
+                  <th key={hour} className="border border-gray-300 dark:border-gray-600 p-2 text-center min-w-[60px]">
+                    {String(hour).padStart(2, '0')}:00
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
           {employees.map(employee => (
             <tr key={employee.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
               <td className="border border-gray-300 dark:border-gray-600 p-2 sticky left-0 bg-white dark:bg-gray-800 z-10">
@@ -141,23 +156,27 @@ function DayViewMatrix({ date, schedules, employees }) {
       </table>
 
       {/* 요약 통계 */}
-      <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-        <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Summary</h3>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Total Shifts</p>
-            <p className="text-xl font-bold text-blue-600 dark:text-blue-400">
-              {daySchedules.length}
-            </p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Employees Working</p>
-            <p className="text-xl font-bold text-blue-600 dark:text-blue-400">
-              {new Set(daySchedules.map(s => s.employee_id)).size}
-            </p>
+      {daySchedules.length > 0 && (
+        <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+          <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Summary</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Total Shifts</p>
+              <p className="text-xl font-bold text-blue-600 dark:text-blue-400">
+                {daySchedules.length}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Employees Working</p>
+              <p className="text-xl font-bold text-blue-600 dark:text-blue-400">
+                {new Set(daySchedules.map(s => s.employee_id)).size}
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
+        </>
+      )}
     </div>
   );
 }

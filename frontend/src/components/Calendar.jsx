@@ -78,6 +78,7 @@ function Calendar({
   const [selectedSchedule, setSelectedSchedule] = useState(null);
   const [selectedInfo, setSelectedInfo] = useState(null);
   const [currentView, setCurrentView] = useState('timeGridWeek');
+  const [currentDate, setCurrentDate] = useState(new Date());
   const calendarRef = useRef(null);
 
   // 공휴일을 캘린더에 표시
@@ -235,6 +236,7 @@ function Calendar({
   // 날짜 변경 감지
   const handleDatesSet = (dateInfo) => {
     onDateChange(dateInfo.start);
+    setCurrentDate(dateInfo.start);
     // 현재 뷰 타입 저장
     const calendarApi = calendarRef.current?.getApi();
     if (calendarApi) {
@@ -301,60 +303,34 @@ function Calendar({
         </div>
       )}
       
-      {/* 일간 뷰일 때 매트릭스 표시 */}
-      {currentView === 'timeGridDay' ? (
-        <div>
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Daily Schedule Matrix
-            </h3>
-            <button
-              onClick={() => {
-                const calendarApi = calendarRef.current?.getApi();
-                if (calendarApi) {
-                  calendarApi.changeView('timeGridWeek');
-                }
-              }}
-              className="px-3 py-1 text-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-            >
-              Back to Week View
-            </button>
-          </div>
-          <DayViewMatrix
-            date={calendarRef.current?.getApi()?.getDate() || new Date()}
-            schedules={schedules}
-            employees={employees}
-          />
-        </div>
-      ) : (
-        <FullCalendar
-          ref={calendarRef}
-          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-          initialView="timeGridWeek"
-          headerToolbar={{
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek,timeGridDay'
-          }}
-          locale="en"
-          timeZone="local"
-          buttonText={{
-            today: 'Today',
-            month: 'Month',
-            week: 'Week',
-            day: 'Day'
-          }}
-          firstDay={1}
-          height="auto"
-          slotMinTime={storeHours?.open || '00:00:00'}
-          slotMaxTime={storeHours?.close || '24:00:00'}
-          allDaySlot={false}
-          selectable={true}
-          selectMirror={true}
-          editable={true}
-          eventResizableFromStart={true}
-          events={events}
-          select={handleDateSelect}
+      <FullCalendar
+        ref={calendarRef}
+        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+        initialView="timeGridWeek"
+        headerToolbar={{
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        }}
+        locale="en"
+        timeZone="local"
+        buttonText={{
+          today: 'Today',
+          month: 'Month',
+          week: 'Week',
+          day: 'Day'
+        }}
+        firstDay={1}
+        height="auto"
+        slotMinTime={storeHours?.open || '00:00:00'}
+        slotMaxTime={storeHours?.close || '24:00:00'}
+        allDaySlot={false}
+        selectable={true}
+        selectMirror={true}
+        editable={true}
+        eventResizableFromStart={true}
+        events={events}
+        select={handleDateSelect}
           eventClick={handleEventClick}
           eventDrop={handleEventDrop}
           eventResize={handleEventResize}
@@ -374,8 +350,45 @@ function Calendar({
               info.el.classList.add('holiday');
               info.el.setAttribute('title', HOLIDAYS[dateStr]);
             }
-          }}
-        />
+        eventClick={handleEventClick}
+        eventDrop={handleEventDrop}
+        eventResize={handleEventResize}
+        datesSet={handleDatesSet}
+        dateClick={handleDateClick}
+        eventContent={renderEventContent}
+        eventOrder="start,-duration,title"
+        slotDuration="00:30:00"
+        snapDuration="00:15:00"
+        dayHeaderFormat={{
+          weekday: 'short',
+          day: 'numeric'
+        }}
+        dayCellDidMount={(info) => {
+          const dateStr = info.date.toISOString().split('T')[0];
+          if (HOLIDAYS[dateStr]) {
+            info.el.classList.add('holiday');
+            info.el.setAttribute('title', HOLIDAYS[dateStr]);
+          }
+        }}
+      />
+
+      {/* Day 뷰일 때 매트릭스를 추가로 표시 */}
+      {currentView === 'timeGridDay' && (
+        <div className="mt-6 pt-6 border-t-2 border-gray-200 dark:border-gray-700">
+          <div className="mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              📊 Daily Schedule Matrix View
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Overview of all employees working today
+            </p>
+          </div>
+          <DayViewMatrix
+            date={currentDate}
+            schedules={schedules}
+            employees={employees}
+          />
+        </div>
       )}
 
       {showModal && (
