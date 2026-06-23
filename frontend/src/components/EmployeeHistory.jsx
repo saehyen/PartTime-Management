@@ -6,21 +6,27 @@ const API_URL = import.meta.env.VITE_API_URL || '/api';
 function EmployeeHistory({ employee, onClose }) {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
 
   useEffect(() => {
     fetchHistory();
-  }, [employee.id]);
+  }, [employee.id, selectedMonth]);
 
   const fetchHistory = async () => {
     try {
       setLoading(true);
-      // 최근 6개월 데이터 가져오기
-      const endDate = new Date();
-      const startDate = new Date();
-      startDate.setMonth(startDate.getMonth() - 6);
+      
+      // 선택된 월의 첫날과 마지막 날 계산
+      const [year, month] = selectedMonth.split('-').map(Number);
+      const startDate = new Date(year, month - 1, 1);
+      const endDate = new Date(year, month, 0, 23, 59, 59);
 
       console.log('근무 기록 조회:', {
         employee: employee.name,
+        month: selectedMonth,
         start: startDate.toISOString(),
         end: endDate.toISOString()
       });
@@ -94,29 +100,42 @@ function EmployeeHistory({ employee, onClose }) {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col">
         {/* 헤더 */}
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div
-              className="w-4 h-4 rounded-full"
-              style={{ backgroundColor: employee.color }}
-            />
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                {employee.name} 근무 기록
-              </h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                시급: {employee.hourly_rate.toLocaleString()}원
-              </p>
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <div
+                className="w-4 h-4 rounded-full"
+                style={{ backgroundColor: employee.color }}
+              />
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  {employee.name} 근무 기록
+                </h2>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  시급: {employee.hourly_rate.toLocaleString()}원
+                </p>
+              </div>
             </div>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+          
+          {/* 월 선택 */}
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">조회 월:</label>
+            <input
+              type="month"
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
         </div>
 
         {/* 통계 요약 */}

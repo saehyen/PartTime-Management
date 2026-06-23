@@ -3,6 +3,9 @@ const express = require('express');
 const cors = require('cors');
 const db = require('./database');
 
+// 한국 시간(KST) 타임존 설정
+process.env.TZ = 'Asia/Seoul';
+
 const app = express();
 const PORT = process.env.PORT || 15000;
 

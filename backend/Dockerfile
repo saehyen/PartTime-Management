@@ -1,5 +1,13 @@
 FROM node:18-alpine
 
+# 한국 시간(KST) 타임존 설정
+RUN apk add --no-cache tzdata && \
+    cp /usr/share/zoneinfo/Asia/Seoul /etc/localtime && \
+    echo "Asia/Seoul" > /etc/timezone && \
+    apk del tzdata
+
+ENV TZ=Asia/Seoul
+
 WORKDIR /app
 
 # Python과 빌드 도구 설치 (better-sqlite3 컴파일용)
