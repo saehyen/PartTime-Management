@@ -13,7 +13,7 @@ function fromISOString(isoString) {
   return isoString.slice(0, 16);
 }
 
-function ScheduleModal({ employees, schedule, selectInfo, onSave, onDelete, onClose }) {
+function ScheduleModal({ employees, schedule, selectInfo, onSave, onDelete, onClose, preSelectedEmployeeId }) {
   const [employeeId, setEmployeeId] = useState('');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
@@ -26,11 +26,12 @@ function ScheduleModal({ employees, schedule, selectInfo, onSave, onDelete, onCl
       setEndTime(fromISOString(schedule.end_time));
     } else if (selectInfo) {
       // 추가 모드 - FullCalendar의 로컬 시간 사용
-      setEmployeeId(employees[0]?.id || '');
+      // preSelectedEmployeeId가 있으면 사용, 없으면 첫 번째 직원
+      setEmployeeId(preSelectedEmployeeId || employees[0]?.id || '');
       setStartTime(toLocalISOString(selectInfo.start));
       setEndTime(toLocalISOString(selectInfo.end));
     }
-  }, [schedule, selectInfo, employees]);
+  }, [schedule, selectInfo, employees, preSelectedEmployeeId]);
 
   const handleSubmit = (e) => {
     e.preventDefault();

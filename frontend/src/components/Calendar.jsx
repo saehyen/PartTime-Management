@@ -68,7 +68,8 @@ function Calendar({
   onUpdateSchedule, 
   onDeleteSchedule,
   onDateChange,
-  storeHours
+  storeHours,
+  selectedEmployeeId
 }) {
   const [showModal, setShowModal] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState(null);
@@ -200,6 +201,24 @@ function Calendar({
 
   return (
     <>
+      {selectedEmployeeId && (
+        <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/30 border-2 border-blue-500 rounded-lg flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div
+              className="w-5 h-5 rounded-full border-2 border-blue-600"
+              style={{ backgroundColor: employees.find(e => e.id === selectedEmployeeId)?.color }}
+            />
+            <div>
+              <p className="font-semibold text-blue-700 dark:text-blue-300">
+                선택된 알바생: {employees.find(e => e.id === selectedEmployeeId)?.name}
+              </p>
+              <p className="text-xs text-blue-600 dark:text-blue-400">
+                캘린더에서 드래그하여 스케줄을 추가하세요
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
       <FullCalendar
         ref={calendarRef}
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
@@ -255,6 +274,7 @@ function Calendar({
           onSave={handleSaveSchedule}
           onDelete={handleDeleteSchedule}
           onClose={() => setShowModal(false)}
+          preSelectedEmployeeId={selectedEmployeeId}
         />
       )}
     </>

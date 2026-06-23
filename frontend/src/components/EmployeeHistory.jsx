@@ -14,10 +14,16 @@ function EmployeeHistory({ employee, onClose }) {
   const fetchHistory = async () => {
     try {
       setLoading(true);
-      // 최근 3개월 데이터 가져오기
+      // 최근 6개월 데이터 가져오기
       const endDate = new Date();
       const startDate = new Date();
-      startDate.setMonth(startDate.getMonth() - 3);
+      startDate.setMonth(startDate.getMonth() - 6);
+
+      console.log('근무 기록 조회:', {
+        employee: employee.name,
+        start: startDate.toISOString(),
+        end: endDate.toISOString()
+      });
 
       const response = await axios.get(`${API_URL}/schedules`, {
         params: {
@@ -26,10 +32,14 @@ function EmployeeHistory({ employee, onClose }) {
         }
       });
 
+      console.log('전체 스케줄:', response.data.length);
+
       // 해당 알바생의 스케줄만 필터링
       const employeeSchedules = response.data
         .filter(s => s.employee_id === employee.id)
         .sort((a, b) => new Date(b.start_time) - new Date(a.start_time));
+
+      console.log('해당 알바생 스케줄:', employeeSchedules.length);
 
       setHistory(employeeSchedules);
     } catch (error) {
@@ -40,8 +50,8 @@ function EmployeeHistory({ employee, onClose }) {
   };
 
   const formatDate = (dateString) => {
-    // 로컬 시간으로 파싱
-    const date = new Date(dateString.replace('T', ' ').replace(/-/g, '/'));
+    // 타임존 없는 로컬 시간으로 파싱
+    const date = new Date(dateString);
     return date.toLocaleDateString('ko-KR', {
       year: 'numeric',
       month: 'long',
@@ -51,17 +61,18 @@ function EmployeeHistory({ employee, onClose }) {
   };
 
   const formatTime = (dateString) => {
-    // 로컬 시간으로 파싱
-    const date = new Date(dateString.replace('T', ' ').replace(/-/g, '/'));
+    // 타임존 없는 로컬 시간으로 파싱
+    const date = new Date(dateString);
     return date.toLocaleTimeString('ko-KR', {
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
+      hour12: false
     });
   };
 
   const calculateHours = (start, end) => {
-    const startDate = new Date(start.replace('T', ' ').replace(/-/g, '/'));
-    const endDate = new Date(end.replace('T', ' ').replace(/-/g, '/'));
+    const startDate = new Date(start);
+    const endDate = new Date(end);
     const diff = endDate - startDate;
     return (diff / (1000 * 60 * 60)).toFixed(1);
   };

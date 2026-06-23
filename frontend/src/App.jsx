@@ -15,6 +15,7 @@ function App() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [loading, setLoading] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState(null);
   const [storeHours, setStoreHours] = useState({
     open: '07:00',
     close: '21:00'
@@ -229,6 +230,7 @@ function App() {
                 onDeleteSchedule={handleDeleteSchedule}
                 onDateChange={setCurrentDate}
                 storeHours={storeHours}
+                selectedEmployeeId={selectedEmployeeId}
               />
             </div>
           </div>
@@ -241,6 +243,8 @@ function App() {
               onAdd={handleAddEmployee}
               onUpdate={handleUpdateEmployee}
               onDelete={handleDeleteEmployee}
+              selectedEmployeeId={selectedEmployeeId}
+              onSelectEmployee={setSelectedEmployeeId}
             />
 
             {/* 월별 정산 */}
