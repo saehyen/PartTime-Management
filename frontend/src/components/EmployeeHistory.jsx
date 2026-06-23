@@ -40,7 +40,8 @@ function EmployeeHistory({ employee, onClose }) {
   };
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
+    // 로컬 시간으로 파싱
+    const date = new Date(dateString.replace('T', ' ').replace(/-/g, '/'));
     return date.toLocaleDateString('ko-KR', {
       year: 'numeric',
       month: 'long',
@@ -50,7 +51,8 @@ function EmployeeHistory({ employee, onClose }) {
   };
 
   const formatTime = (dateString) => {
-    const date = new Date(dateString);
+    // 로컬 시간으로 파싱
+    const date = new Date(dateString.replace('T', ' ').replace(/-/g, '/'));
     return date.toLocaleTimeString('ko-KR', {
       hour: '2-digit',
       minute: '2-digit'
@@ -58,7 +60,9 @@ function EmployeeHistory({ employee, onClose }) {
   };
 
   const calculateHours = (start, end) => {
-    const diff = new Date(end) - new Date(start);
+    const startDate = new Date(start.replace('T', ' ').replace(/-/g, '/'));
+    const endDate = new Date(end.replace('T', ' ').replace(/-/g, '/'));
+    const diff = endDate - startDate;
     return (diff / (1000 * 60 * 60)).toFixed(1);
   };
 

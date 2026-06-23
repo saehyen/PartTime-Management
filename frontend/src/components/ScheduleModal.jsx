@@ -1,5 +1,18 @@
 import { useState, useEffect } from 'react';
 
+// 로컬 시간을 ISO 형식으로 변환 (타임존 오프셋 제거)
+function toLocalISOString(date) {
+  const offset = date.getTimezoneOffset();
+  const localDate = new Date(date.getTime() - (offset * 60 * 1000));
+  return localDate.toISOString().slice(0, 16);
+}
+
+// ISO 문자열을 로컬 날짜로 변환
+function fromISOString(isoString) {
+  // 서버에서 받은 ISO 문자열을 로컬 시간으로 해석
+  return isoString.slice(0, 16);
+}
+
 function ScheduleModal({ employees, schedule, selectInfo, onSave, onDelete, onClose }) {
   const [employeeId, setEmployeeId] = useState('');
   const [startTime, setStartTime] = useState('');
@@ -7,15 +20,15 @@ function ScheduleModal({ employees, schedule, selectInfo, onSave, onDelete, onCl
 
   useEffect(() => {
     if (schedule) {
-      // 수정 모드
+      // 수정 모드 - 서버 시간을 로컬 시간으로 표시
       setEmployeeId(schedule.employee_id);
-      setStartTime(new Date(schedule.start_time).toISOString().slice(0, 16));
-      setEndTime(new Date(schedule.end_time).toISOString().slice(0, 16));
+      setStartTime(fromISOString(schedule.start_time));
+      setEndTime(fromISOString(schedule.end_time));
     } else if (selectInfo) {
-      // 추가 모드
+      // 추가 모드 - FullCalendar의 로컬 시간 사용
       setEmployeeId(employees[0]?.id || '');
-      setStartTime(selectInfo.start.toISOString().slice(0, 16));
-      setEndTime(selectInfo.end.toISOString().slice(0, 16));
+      setStartTime(toLocalISOString(selectInfo.start));
+      setEndTime(toLocalISOString(selectInfo.end));
     }
   }, [schedule, selectInfo, employees]);
 
@@ -32,10 +45,11 @@ function ScheduleModal({ employees, schedule, selectInfo, onSave, onDelete, onCl
       return;
     }
 
+    // 로컬 시간을 그대로 ISO 형식으로 저장 (타임존 변환 없이)
     onSave({
       employee_id: parseInt(employeeId),
-      start_time: new Date(startTime).toISOString(),
-      end_time: new Date(endTime).toISOString()
+      start_time: startTime + ':00',
+      end_time: endTime + ':00'
     });
   };
 

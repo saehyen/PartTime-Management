@@ -133,20 +133,42 @@ function Calendar({
   // 이벤트 드래그 & 드롭
   const handleEventDrop = (dropInfo) => {
     const event = dropInfo.event;
+    
+    // 로컬 시간을 ISO 형식으로 저장
+    const formatLocalTime = (date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      return `${year}-${month}-${day}T${hours}:${minutes}:00`;
+    };
+
     onUpdateSchedule(event.id, {
       employee_id: event.extendedProps.employeeId,
-      start_time: event.start.toISOString(),
-      end_time: event.end.toISOString()
+      start_time: formatLocalTime(event.start),
+      end_time: formatLocalTime(event.end)
     });
   };
 
   // 이벤트 리사이즈
   const handleEventResize = (resizeInfo) => {
     const event = resizeInfo.event;
+    
+    // 로컬 시간을 ISO 형식으로 저장
+    const formatLocalTime = (date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      return `${year}-${month}-${day}T${hours}:${minutes}:00`;
+    };
+
     onUpdateSchedule(event.id, {
       employee_id: event.extendedProps.employeeId,
-      start_time: event.start.toISOString(),
-      end_time: event.end.toISOString()
+      start_time: formatLocalTime(event.start),
+      end_time: formatLocalTime(event.end)
     });
   };
 
@@ -187,6 +209,7 @@ function Calendar({
           right: 'dayGridMonth,timeGridWeek,timeGridDay'
         }}
         locale="ko"
+        timeZone="local"
         buttonText={{
           today: '오늘',
           month: '월',
@@ -195,7 +218,7 @@ function Calendar({
         }}
         firstDay={1}
         height="auto"
-        slotMinTime="06:00:00"
+        slotMinTime="00:00:00"
         slotMaxTime="24:00:00"
         allDaySlot={false}
         selectable={true}
