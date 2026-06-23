@@ -25,10 +25,16 @@ cd PartTime-Management
 
 ### 2. 환경 설정
 
+외부 접속을 위한 `.env` 파일 생성:
+
 ```bash
-# .env 파일 생성 (필요시 수정)
-cp .env.example .env
+# 실제 서버 IP로 변경
+cat > .env << EOF
+FRONTEND_URL=http://YOUR_SERVER_IP:3000
+EOF
 ```
+
+로컬 개발 환경에서는 생략 가능 (기본값: http://localhost:3000)
 
 ### 3. Docker로 실행
 
@@ -44,6 +50,8 @@ docker-compose logs -f
 
 - 프론트엔드: `http://localhost:3000`
 - 백엔드 API: `http://localhost:15000`
+
+**외부 접속 (다른 컴퓨터에서)**: [EXTERNAL_ACCESS.md](./EXTERNAL_ACCESS.md) 참고
 
 ## 수동 실행 (개발 환경)
 

@@ -29,13 +29,26 @@ git clone https://github.com/saehyen/PartTime-Management.git
 cd PartTime-Management
 ```
 
-### 3. 실행 권한 부여
+### 3. 환경 설정
+
+외부 접속을 위한 `.env` 파일 생성:
+
+```bash
+# 실제 서버 IP로 변경하세요
+cat > .env << EOF
+FRONTEND_URL=http://YOUR_SERVER_IP:3000
+EOF
+
+# 예시: FRONTEND_URL=http://27.96.149.150:3000
+```
+
+### 4. 실행 권한 부여
 
 ```bash
 chmod +x start.sh stop.sh
 ```
 
-### 4. 실행
+### 5. 실행
 
 ```bash
 # 간단 실행
@@ -50,6 +63,11 @@ docker-compose up -d
 브라우저에서 다음 주소로 접속:
 - **프론트엔드**: http://서버IP:3000
 - **백엔드 API**: http://서버IP:15000
+
+로컬 테스트:
+- http://localhost:3000
+
+**외부 접속 설정**: [EXTERNAL_ACCESS.md](./EXTERNAL_ACCESS.md) 참고
 
 ### 6. 중지
 
