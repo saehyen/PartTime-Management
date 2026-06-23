@@ -30,8 +30,8 @@ function MonthlySummary({ currentDate }) {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">💰 월별 정산</h2>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">💰 월별 정산</h2>
         <div className="text-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
         </div>
@@ -41,9 +41,9 @@ function MonthlySummary({ currentDate }) {
 
   if (!summary || summary.employees.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">💰 월별 정산</h2>
-        <p className="text-sm text-gray-500 text-center py-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">💰 월별 정산</h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
           데이터가 없습니다
         </p>
       </div>
@@ -53,9 +53,9 @@ function MonthlySummary({ currentDate }) {
   const { year, month } = summary.period;
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h2 className="text-lg font-semibold text-gray-900 mb-2">💰 월별 정산</h2>
-      <p className="text-sm text-gray-600 mb-4">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">💰 월별 정산</h2>
+      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
         {year}년 {month}월
       </p>
 
@@ -63,16 +63,16 @@ function MonthlySummary({ currentDate }) {
         {summary.employees.map(emp => (
           <div
             key={emp.id}
-            className="p-3 bg-gray-50 rounded-md"
+            className="p-3 bg-gray-50 dark:bg-gray-700 rounded-md"
           >
             <div className="flex items-center gap-2 mb-2">
               <div
                 className="w-3 h-3 rounded-full"
                 style={{ backgroundColor: emp.color }}
               />
-              <span className="font-medium text-gray-900">{emp.name}</span>
+              <span className="font-medium text-gray-900 dark:text-white">{emp.name}</span>
             </div>
-            <div className="text-sm text-gray-600 space-y-1">
+            <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
               <div className="flex justify-between">
                 <span>근무 횟수</span>
                 <span className="font-medium">{emp.total_shifts || 0}회</span>
@@ -89,9 +89,9 @@ function MonthlySummary({ currentDate }) {
                   {emp.hourly_rate.toLocaleString()}원
                 </span>
               </div>
-              <div className="flex justify-between pt-1 border-t border-gray-200">
+              <div className="flex justify-between pt-1 border-t border-gray-200 dark:border-gray-600">
                 <span className="font-semibold">급여</span>
-                <span className="font-semibold text-blue-600">
+                <span className="font-semibold text-blue-600 dark:text-blue-400">
                   {(emp.total_pay || 0).toLocaleString()}원
                 </span>
               </div>
@@ -100,10 +100,10 @@ function MonthlySummary({ currentDate }) {
         ))}
       </div>
 
-      <div className="pt-4 border-t-2 border-gray-300">
+      <div className="pt-4 border-t-2 border-gray-300 dark:border-gray-600">
         <div className="flex justify-between items-center">
-          <span className="text-lg font-semibold text-gray-900">총 지출</span>
-          <span className="text-xl font-bold text-red-600">
+          <span className="text-lg font-semibold text-gray-900 dark:text-white">총 지출</span>
+          <span className="text-xl font-bold text-red-600 dark:text-red-400">
             {summary.total_pay.toLocaleString()}원
           </span>
         </div>

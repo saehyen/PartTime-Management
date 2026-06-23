@@ -1,9 +1,65 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import ScheduleModal from './ScheduleModal';
+
+// 한국 공휴일 데이터 (2024-2026)
+const HOLIDAYS = {
+  '2024-01-01': '신정',
+  '2024-02-09': '설날 전날',
+  '2024-02-10': '설날',
+  '2024-02-11': '설날 다음날',
+  '2024-02-12': '대체공휴일',
+  '2024-03-01': '삼일절',
+  '2024-04-10': '국회의원선거',
+  '2024-05-05': '어린이날',
+  '2024-05-06': '대체공휴일',
+  '2024-05-15': '부처님오신날',
+  '2024-06-06': '현충일',
+  '2024-08-15': '광복절',
+  '2024-09-16': '추석 전날',
+  '2024-09-17': '추석',
+  '2024-09-18': '추석 다음날',
+  '2024-10-03': '개천절',
+  '2024-10-09': '한글날',
+  '2024-12-25': '크리스마스',
+  '2025-01-01': '신정',
+  '2025-01-28': '설날 전날',
+  '2025-01-29': '설날',
+  '2025-01-30': '설날 다음날',
+  '2025-03-01': '삼일절',
+  '2025-03-03': '대체공휴일',
+  '2025-05-05': '어린이날',
+  '2025-05-06': '부처님오신날',
+  '2025-06-06': '현충일',
+  '2025-08-15': '광복절',
+  '2025-10-03': '개천절',
+  '2025-10-05': '추석 전날',
+  '2025-10-06': '추석',
+  '2025-10-07': '추석 다음날',
+  '2025-10-08': '대체공휴일',
+  '2025-10-09': '한글날',
+  '2025-12-25': '크리스마스',
+  '2026-01-01': '신정',
+  '2026-02-16': '설날 전날',
+  '2026-02-17': '설날',
+  '2026-02-18': '설날 다음날',
+  '2026-03-01': '삼일절',
+  '2026-03-02': '대체공휴일',
+  '2026-05-05': '어린이날',
+  '2026-05-25': '부처님오신날',
+  '2026-06-06': '현충일',
+  '2026-08-15': '광복절',
+  '2026-09-24': '추석 전날',
+  '2026-09-25': '추석',
+  '2026-09-26': '추석 다음날',
+  '2026-10-03': '개천절',
+  '2026-10-05': '대체공휴일',
+  '2026-10-09': '한글날',
+  '2026-12-25': '크리스마스',
+};
 
 function Calendar({ 
   employees, 
@@ -17,6 +73,22 @@ function Calendar({
   const [selectedSchedule, setSelectedSchedule] = useState(null);
   const [selectedInfo, setSelectedInfo] = useState(null);
   const calendarRef = useRef(null);
+
+  // 공휴일을 캘린더에 표시
+  useEffect(() => {
+    if (calendarRef.current) {
+      const calendarApi = calendarRef.current.getApi();
+      // 공휴일 CSS 클래스 적용
+      Object.keys(HOLIDAYS).forEach(date => {
+        const dayEl = calendarApi.el.querySelector(`[data-date="${date}"]`);
+        if (dayEl) {
+          dayEl.classList.add('holiday');
+          // 공휴일 제목 툴팁 추가
+          dayEl.setAttribute('title', HOLIDAYS[date]);
+        }
+      });
+    }
+  }, [schedules]);
 
   // 스케줄 데이터를 FullCalendar 이벤트 형식으로 변환
   const events = schedules.map(schedule => ({
@@ -121,6 +193,7 @@ function Calendar({
           week: '주',
           day: '일'
         }}
+        firstDay={1}
         height="auto"
         slotMinTime="06:00:00"
         slotMaxTime="24:00:00"
@@ -137,6 +210,17 @@ function Calendar({
         datesSet={handleDatesSet}
         slotDuration="00:30:00"
         snapDuration="00:15:00"
+        dayHeaderFormat={{
+          weekday: 'short',
+          day: 'numeric'
+        }}
+        dayCellDidMount={(info) => {
+          const dateStr = info.date.toISOString().split('T')[0];
+          if (HOLIDAYS[dateStr]) {
+            info.el.classList.add('holiday');
+            info.el.setAttribute('title', HOLIDAYS[dateStr]);
+          }
+        }}
       />
 
       {showModal && (

@@ -215,14 +215,14 @@ app.get('/api/statistics/monthly', (req, res) => {
         e.hourly_rate,
         e.color,
         COUNT(s.id) as total_shifts,
-        SUM(
+        COALESCE(SUM(
           (julianday(s.end_time) - julianday(s.start_time)) * 24
-        ) as total_hours,
-        CAST(
+        ), 0) as total_hours,
+        COALESCE(CAST(
           SUM(
             (julianday(s.end_time) - julianday(s.start_time)) * 24
           ) * e.hourly_rate AS INTEGER
-        ) as total_pay
+        ), 0) as total_pay
       FROM employees e
       LEFT JOIN schedules s ON e.id = s.employee_id 
         AND date(s.start_time) >= ? 

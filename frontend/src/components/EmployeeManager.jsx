@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import EmployeeHistory from './EmployeeHistory';
 
 const COLORS = [
   '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6',
@@ -8,6 +9,7 @@ const COLORS = [
 function EmployeeManager({ employees, onAdd, onUpdate, onDelete }) {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     hourly_rate: '',
@@ -56,9 +58,9 @@ function EmployeeManager({ employees, onAdd, onUpdate, onDelete }) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-900">👤 알바생 관리</h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">👤 알바생 관리</h2>
         {!showForm && (
           <button
             onClick={() => setShowForm(true)}
@@ -70,14 +72,14 @@ function EmployeeManager({ employees, onAdd, onUpdate, onDelete }) {
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="mb-4 p-4 bg-gray-50 rounded-md space-y-3">
+        <form onSubmit={handleSubmit} className="mb-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-md space-y-3">
           <div>
             <input
               type="text"
               placeholder="이름"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             />
           </div>
@@ -87,13 +89,13 @@ function EmployeeManager({ employees, onAdd, onUpdate, onDelete }) {
               placeholder="시급 (원)"
               value={formData.hourly_rate}
               onChange={(e) => setFormData({ ...formData, hourly_rate: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               min="0"
               required
             />
           </div>
           <div>
-            <label className="block text-sm text-gray-700 mb-2">색상</label>
+            <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">색상</label>
             <div className="flex gap-2 flex-wrap">
               {COLORS.map(color => (
                 <button
@@ -101,7 +103,7 @@ function EmployeeManager({ employees, onAdd, onUpdate, onDelete }) {
                   type="button"
                   onClick={() => setFormData({ ...formData, color })}
                   className={`w-8 h-8 rounded-full border-2 transition-all ${
-                    formData.color === color ? 'border-gray-900 scale-110' : 'border-gray-300'
+                    formData.color === color ? 'border-gray-900 dark:border-white scale-110' : 'border-gray-300 dark:border-gray-600'
                   }`}
                   style={{ backgroundColor: color }}
                 />
@@ -112,7 +114,7 @@ function EmployeeManager({ employees, onAdd, onUpdate, onDelete }) {
             <button
               type="button"
               onClick={handleCancel}
-              className="flex-1 px-3 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
+              className="flex-1 px-3 py-2 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
             >
               취소
             </button>
@@ -128,23 +130,26 @@ function EmployeeManager({ employees, onAdd, onUpdate, onDelete }) {
 
       <div className="space-y-2">
         {employees.length === 0 ? (
-          <p className="text-sm text-gray-500 text-center py-4">
+          <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
             알바생을 추가해주세요
           </p>
         ) : (
           employees.map(employee => (
             <div
               key={employee.id}
-              className="flex items-center justify-between p-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors"
+              className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-md hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
             >
-              <div className="flex items-center gap-3">
+              <div 
+                className="flex items-center gap-3 flex-1 cursor-pointer"
+                onClick={() => setSelectedEmployee(employee)}
+              >
                 <div
                   className="w-4 h-4 rounded-full"
                   style={{ backgroundColor: employee.color }}
                 />
                 <div>
-                  <p className="font-medium text-gray-900">{employee.name}</p>
-                  <p className="text-sm text-gray-600">
+                  <p className="font-medium text-gray-900 dark:text-white">{employee.name}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
                     {employee.hourly_rate.toLocaleString()}원/시간
                   </p>
                 </div>
@@ -152,13 +157,13 @@ function EmployeeManager({ employees, onAdd, onUpdate, onDelete }) {
               <div className="flex gap-1">
                 <button
                   onClick={() => handleEdit(employee)}
-                  className="px-2 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                  className="px-2 py-1 text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded transition-colors"
                 >
                   수정
                 </button>
                 <button
                   onClick={() => onDelete(employee.id)}
-                  className="px-2 py-1 text-sm text-red-600 hover:bg-red-50 rounded transition-colors"
+                  className="px-2 py-1 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded transition-colors"
                 >
                   삭제
                 </button>
@@ -167,6 +172,13 @@ function EmployeeManager({ employees, onAdd, onUpdate, onDelete }) {
           ))
         )}
       </div>
+
+      {selectedEmployee && (
+        <EmployeeHistory
+          employee={selectedEmployee}
+          onClose={() => setSelectedEmployee(null)}
+        />
+      )}
     </div>
   );
 }

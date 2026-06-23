@@ -16,6 +16,11 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* 다크모드 전환 애니메이션 */
+* {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
 /* FullCalendar 커스텀 스타일 */
 .fc {
   font-family: inherit;
@@ -62,4 +67,75 @@ body {
 .fc-button-primary:disabled {
   background-color: #93c5fd !important;
   border-color: #93c5fd !important;
+}
+
+/* 다크모드 FullCalendar */
+.dark .fc {
+  color: #e5e7eb;
+}
+
+.dark .fc-theme-standard .fc-scrollgrid {
+  border-color: #374151;
+}
+
+.dark .fc-theme-standard td,
+.dark .fc-theme-standard th {
+  border-color: #374151;
+}
+
+.dark .fc-col-header-cell {
+  background-color: #1f2937;
+}
+
+.dark .fc-daygrid-day-number {
+  color: #e5e7eb;
+}
+
+.dark .fc-timegrid-slot-label {
+  color: #9ca3af;
+  border-color: #374151;
+}
+
+.dark .fc-timegrid-axis {
+  background-color: #1f2937;
+}
+
+.dark .fc-scrollgrid-section-body > td {
+  border-color: #374151;
+}
+
+/* 주말 스타일 */
+.fc-day-sat,
+.fc-day-sun {
+  background-color: rgba(239, 68, 68, 0.05);
+}
+
+.dark .fc-day-sat,
+.dark .fc-day-sun {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+/* 빨간날 (공휴일) */
+.fc-day.holiday {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.dark .fc-day.holiday {
+  background-color: rgba(239, 68, 68, 0.15);
+}
+
+.fc-day.holiday .fc-daygrid-day-number {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+/* 시간 표시 글씨체 */
+.fc-timegrid-slot-label-cushion {
+  font-family: 'Inter', -apple-system, system-ui, sans-serif;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.fc-col-header-cell-cushion {
+  font-weight: 600;
 }
