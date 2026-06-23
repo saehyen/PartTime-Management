@@ -143,6 +143,11 @@ function EmployeeManager({ employees, onAdd, onUpdate, onDelete }) {
               <div 
                 className="flex items-center gap-3 flex-1 cursor-pointer"
                 onClick={() => setSelectedEmployee(employee)}
+                role="button"
+                tabIndex={0}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') setSelectedEmployee(employee);
+                }}
               >
                 <div
                   className="w-4 h-4 rounded-full"
@@ -155,7 +160,7 @@ function EmployeeManager({ employees, onAdd, onUpdate, onDelete }) {
                   </p>
                 </div>
               </div>
-              <div className="flex gap-1">
+              <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
                 <button
                   onClick={() => handleEdit(employee)}
                   className="px-2 py-1 text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded transition-colors"

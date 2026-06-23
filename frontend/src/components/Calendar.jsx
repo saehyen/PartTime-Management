@@ -67,7 +67,8 @@ function Calendar({
   onAddSchedule, 
   onUpdateSchedule, 
   onDeleteSchedule,
-  onDateChange 
+  onDateChange,
+  storeHours
 }) {
   const [showModal, setShowModal] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState(null);
@@ -218,8 +219,8 @@ function Calendar({
         }}
         firstDay={1}
         height="auto"
-        slotMinTime="00:00:00"
-        slotMaxTime="24:00:00"
+        slotMinTime={storeHours?.open || '00:00:00'}
+        slotMaxTime={storeHours?.close || '24:00:00'}
         allDaySlot={false}
         selectable={true}
         selectMirror={true}

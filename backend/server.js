@@ -218,13 +218,13 @@ app.get('/api/statistics/monthly', (req, res) => {
         e.hourly_rate,
         e.color,
         COUNT(s.id) as total_shifts,
-        COALESCE(SUM(
+        COALESCE(ROUND(SUM(
           (julianday(s.end_time) - julianday(s.start_time)) * 24
-        ), 0) as total_hours,
-        COALESCE(CAST(
+        ), 2), 0) as total_hours,
+        COALESCE(ROUND(
           SUM(
             (julianday(s.end_time) - julianday(s.start_time)) * 24
-          ) * e.hourly_rate AS INTEGER
+          ) * e.hourly_rate
         ), 0) as total_pay
       FROM employees e
       LEFT JOIN schedules s ON e.id = s.employee_id 
@@ -242,6 +242,45 @@ app.get('/api/statistics/monthly', (req, res) => {
       period: { year: parseInt(year), month: parseInt(month) }
     });
   } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ========== 설정 API ==========
+
+// 모든 설정 조회
+app.get('/api/settings', (req, res) => {
+  try {
+    const settings = db.prepare('SELECT key, value FROM settings').all();
+    const settingsObj = {};
+    settings.forEach(s => {
+      settingsObj[s.key] = s.value;
+    });
+    res.json(settingsObj);
+  } catch (error) {
+    console.error('설정 조회 에러:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 설정 업데이트
+app.put('/api/settings', (req, res) => {
+  try {
+    const settings = req.body;
+
+    Object.keys(settings).forEach(key => {
+      db.prepare(`
+        INSERT INTO settings (key, value, updated_at) 
+        VALUES (?, ?, CURRENT_TIMESTAMP)
+        ON CONFLICT(key) DO UPDATE SET 
+          value = excluded.value,
+          updated_at = CURRENT_TIMESTAMP
+      `).run(key, settings[key]);
+    });
+
+    res.json({ message: '설정이 저장되었습니다.' });
+  } catch (error) {
+    console.error('설정 저장 에러:', error);
     res.status(500).json({ error: error.message });
   }
 });

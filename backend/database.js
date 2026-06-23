@@ -37,6 +37,29 @@ function initializeDatabase() {
     )
   `);
 
+  // 설정 테이블
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS settings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      key TEXT UNIQUE NOT NULL,
+      value TEXT NOT NULL,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  // 기본 설정값 추가
+  const defaultSettings = [
+    { key: 'store_open_time', value: '07:00' },
+    { key: 'store_close_time', value: '21:00' }
+  ];
+
+  defaultSettings.forEach(setting => {
+    const exists = db.prepare('SELECT id FROM settings WHERE key = ?').get(setting.key);
+    if (!exists) {
+      db.prepare('INSERT INTO settings (key, value) VALUES (?, ?)').run(setting.key, setting.value);
+    }
+  });
+
   console.log('✅ 데이터베이스 초기화 완료');
 }
 

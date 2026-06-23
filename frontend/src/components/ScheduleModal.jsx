@@ -58,7 +58,7 @@ function ScheduleModal({ employees, schedule, selectInfo, onSave, onDelete, onCl
     ? ((new Date(endTime) - new Date(startTime)) / (1000 * 60 * 60)).toFixed(1)
     : 0;
   const estimatedPay = selectedEmployee 
-    ? (hours * selectedEmployee.hourly_rate).toLocaleString()
+    ? Math.round(hours * selectedEmployee.hourly_rate).toLocaleString()
     : 0;
 
   return (

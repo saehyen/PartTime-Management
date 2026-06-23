@@ -3,13 +3,13 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
-function MonthlySummary({ currentDate }) {
+function MonthlySummary({ currentDate, schedules }) {
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchSummary();
-  }, [currentDate]);
+  }, [currentDate, schedules]); // schedules 추가
 
   const fetchSummary = async () => {
     try {
@@ -92,7 +92,7 @@ function MonthlySummary({ currentDate }) {
               <div className="flex justify-between pt-1 border-t border-gray-200 dark:border-gray-600">
                 <span className="font-semibold">급여</span>
                 <span className="font-semibold text-blue-600 dark:text-blue-400">
-                  {(emp.total_pay || 0).toLocaleString()}원
+                  {Math.round(emp.total_pay || 0).toLocaleString()}원
                 </span>
               </div>
             </div>
@@ -104,7 +104,7 @@ function MonthlySummary({ currentDate }) {
         <div className="flex justify-between items-center">
           <span className="text-lg font-semibold text-gray-900 dark:text-white">총 지출</span>
           <span className="text-xl font-bold text-red-600 dark:text-red-400">
-            {summary.total_pay.toLocaleString()}원
+            {Math.round(summary.total_pay).toLocaleString()}원
           </span>
         </div>
       </div>
