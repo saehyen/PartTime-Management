@@ -331,25 +331,6 @@ function Calendar({
         eventResizableFromStart={true}
         events={events}
         select={handleDateSelect}
-          eventClick={handleEventClick}
-          eventDrop={handleEventDrop}
-          eventResize={handleEventResize}
-          datesSet={handleDatesSet}
-          dateClick={handleDateClick}
-          eventContent={renderEventContent}
-          eventOrder="start,-duration,title"
-          slotDuration="00:30:00"
-          snapDuration="00:15:00"
-          dayHeaderFormat={{
-            weekday: 'short',
-            day: 'numeric'
-          }}
-          dayCellDidMount={(info) => {
-            const dateStr = info.date.toISOString().split('T')[0];
-            if (HOLIDAYS[dateStr]) {
-              info.el.classList.add('holiday');
-              info.el.setAttribute('title', HOLIDAYS[dateStr]);
-            }
         eventClick={handleEventClick}
         eventDrop={handleEventDrop}
         eventResize={handleEventResize}
