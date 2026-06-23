@@ -14,6 +14,6 @@ COPY . .
 # 데이터 디렉토리 생성
 RUN mkdir -p /app/data
 
-EXPOSE 5000
+EXPOSE 15000
 
 CMD ["node", "server.js"]

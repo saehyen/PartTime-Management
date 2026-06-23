@@ -4,11 +4,20 @@ const cors = require('cors');
 const db = require('./database');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 15000;
 
 // 미들웨어
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || '*',
+  credentials: true
+}));
 app.use(express.json());
+
+// 요청 로깅 미들웨어
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  next();
+});
 
 // 헬스 체크
 app.get('/api/health', (req, res) => {
@@ -20,9 +29,12 @@ app.get('/api/health', (req, res) => {
 // 모든 알바생 조회
 app.get('/api/employees', (req, res) => {
   try {
+    console.log('알바생 목록 조회 요청');
     const employees = db.prepare('SELECT * FROM employees ORDER BY name').all();
+    console.log(`알바생 ${employees.length}명 조회 완료`);
     res.json(employees);
   } catch (error) {
+    console.error('알바생 조회 에러:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -232,9 +244,11 @@ app.get('/api/statistics/monthly', (req, res) => {
 });
 
 // 서버 시작
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 서버가 포트 ${PORT}에서 실행 중입니다.`);
   console.log(`📊 API: http://localhost:${PORT}/api`);
+  console.log(`🌍 외부 접속: http://0.0.0.0:${PORT}/api`);
+  console.log(`✅ 헬스체크: http://localhost:${PORT}/api/health`);
 });
 
 // 종료 시 데이터베이스 정리

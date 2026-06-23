@@ -17,9 +17,12 @@ function App() {
     try {
       const response = await axios.get(`${API_URL}/employees`);
       setEmployees(response.data);
+      setLoading(false);
     } catch (error) {
       console.error('알바생 목록 불러오기 실패:', error);
-      alert('알바생 목록을 불러오는데 실패했습니다.');
+      console.error('에러 상세:', error.response?.data || error.message);
+      setLoading(false);
+      alert(`알바생 목록을 불러오는데 실패했습니다.\n에러: ${error.response?.data?.error || error.message}`);
     }
   };
 
@@ -38,8 +41,7 @@ function App() {
       setSchedules(response.data);
     } catch (error) {
       console.error('스케줄 불러오기 실패:', error);
-    } finally {
-      setLoading(false);
+      console.error('에러 상세:', error.response?.data || error.message);
     }
   };
 
@@ -48,10 +50,8 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (employees.length > 0) {
-      fetchSchedules();
-    }
-  }, [currentDate, employees]);
+    fetchSchedules();
+  }, [currentDate]);
 
   // 알바생 추가
   const handleAddEmployee = async (employee) => {
@@ -132,7 +132,7 @@ function App() {
     }
   };
 
-  if (loading && employees.length === 0) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">

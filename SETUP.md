@@ -49,7 +49,7 @@ docker-compose up -d
 
 브라우저에서 다음 주소로 접속:
 - **프론트엔드**: http://서버IP:3000
-- **백엔드 API**: http://서버IP:5000
+- **백엔드 API**: http://서버IP:15000
 
 ### 6. 중지
 
@@ -76,7 +76,7 @@ npm install
 npm run dev
 ```
 
-백엔드가 http://localhost:5000 에서 실행됩니다.
+백엔드가 http://localhost:15000 에서 실행됩니다.
 
 ### 3. 프론트엔드 실행 (새 터미널)
 
@@ -118,8 +118,8 @@ npm run dev
 sudo lsof -i :3000
 sudo kill -9 [PID]
 
-# 5000 포트 확인
-sudo lsof -i :5000
+# 15000 포트 확인
+sudo lsof -i :15000
 sudo kill -9 [PID]
 ```
 
@@ -158,7 +158,7 @@ docker-compose logs -f frontend
 services:
   backend:
     ports:
-      - "포트번호:5000"
+      - "포트번호:15000"
   frontend:
     ports:
       - "포트번호:80"
@@ -184,7 +184,7 @@ docker-compose restart
 ```bash
 # Rocky Linux 8
 sudo firewall-cmd --permanent --add-port=3000/tcp
-sudo firewall-cmd --permanent --add-port=5000/tcp
+sudo firewall-cmd --permanent --add-port=15000/tcp
 sudo firewall-cmd --reload
 ```
 

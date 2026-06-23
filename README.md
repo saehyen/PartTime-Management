@@ -42,7 +42,8 @@ docker-compose logs -f
 
 ### 4. 접속
 
-브라우저에서 `http://localhost:3000` 접속
+- 프론트엔드: `http://localhost:3000`
+- 백엔드 API: `http://localhost:15000`
 
 ## 수동 실행 (개발 환경)
 
@@ -96,6 +97,15 @@ docker-compose down -v
 - **Frontend**: React 18, Vite, FullCalendar, TailwindCSS
 - **Backend**: Node.js, Express, SQLite
 - **DevOps**: Docker, Docker Compose
+
+## 문제 해결
+
+문제가 발생하면 [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) 문서를 참고하세요.
+
+특히 "알바생 목록을 불러올 수 없습니다" 오류가 발생하면:
+1. 백엔드 서버가 실행 중인지 확인: `curl http://localhost:15000/api/health`
+2. 브라우저 개발자 도구(F12)의 Console과 Network 탭 확인
+3. Docker 로그 확인: `docker-compose logs -f`
 
 ## 라이센스
 

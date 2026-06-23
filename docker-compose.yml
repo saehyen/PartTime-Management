@@ -8,10 +8,10 @@ services:
     container_name: parttime-backend
     restart: unless-stopped
     ports:
-      - "5000:5000"
+      - "15000:15000"
     environment:
       - NODE_ENV=production
-      - PORT=5000
+      - PORT=15000
       - DB_PATH=/app/data/parttime.db
     volumes:
       - ./data:/app/data
