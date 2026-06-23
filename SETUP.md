@@ -42,13 +42,7 @@ EOF
 # 예시: FRONTEND_URL=http://27.96.149.150:3000
 ```
 
-### 4. 실행 권한 부여
-
-```bash
-chmod +x start.sh stop.sh
-```
-
-### 5. 실행
+### 4. 실행
 
 ```bash
 # 간단 실행
@@ -57,6 +51,15 @@ chmod +x start.sh stop.sh
 # 또는 수동 실행
 docker-compose up -d
 ```
+
+**⚠️ 502 에러가 발생하면:**
+```bash
+# 빠른 수정 스크립트 실행
+chmod +x quick-fix.sh diagnose.sh
+./quick-fix.sh
+```
+
+또는 [CHECKLIST.md](./CHECKLIST.md) 참고
 
 ### 5. 접속
 

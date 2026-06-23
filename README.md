@@ -108,12 +108,21 @@ docker-compose down -v
 
 ## 문제 해결
 
-문제가 발생하면 [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) 문서를 참고하세요.
+문제가 발생하면 해당 가이드를 참고하세요:
 
-특히 "알바생 목록을 불러올 수 없습니다" 오류가 발생하면:
-1. 백엔드 서버가 실행 중인지 확인: `curl http://localhost:15000/api/health`
-2. 브라우저 개발자 도구(F12)의 Console과 Network 탭 확인
-3. Docker 로그 확인: `docker-compose logs -f`
+### 일반적인 문제
+- [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) - 종합 문제 해결 가이드
+
+### 502 Bad Gateway 에러
+"알바생 목록을 불러올 수 없습니다" 오류가 발생하면:
+- [fix-502.md](./fix-502.md) - 502 에러 상세 해결 가이드
+- 빠른 수정: `chmod +x quick-fix.sh && ./quick-fix.sh`
+
+### 주요 확인사항
+1. 백엔드 서버가 실행 중인지 확인: `docker-compose ps`
+2. 백엔드 연결 테스트: `curl http://localhost:15000/api/health`
+3. 브라우저 개발자 도구(F12)의 Console과 Network 탭 확인
+4. Docker 로그 확인: `docker-compose logs -f backend`
 
 ## 라이센스
 
