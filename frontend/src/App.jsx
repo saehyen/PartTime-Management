@@ -3,6 +3,7 @@ import Calendar from './components/Calendar';
 import EmployeeManager from './components/EmployeeManager';
 import MonthlySummary from './components/MonthlySummary';
 import Settings from './components/Settings';
+import DailyTimeline from './components/DailyTimeline';
 import { useTheme } from './contexts/ThemeContext';
 import axios from 'axios';
 
@@ -16,6 +17,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(null);
   const [storeHours, setStoreHours] = useState({
     open: '07:00',
     close: '21:00'
@@ -239,27 +241,42 @@ function App() {
                 onDateChange={setCurrentDate}
                 storeHours={storeHours}
                 selectedEmployeeId={selectedEmployeeId}
+                onDateClick={setSelectedDate}
               />
             </div>
           </div>
 
           {/* 사이드바 */}
           <div className="lg:col-span-1 space-y-6">
-            {/* 알바생 관리 */}
-            <EmployeeManager
-              employees={employees}
-              onAdd={handleAddEmployee}
-              onUpdate={handleUpdateEmployee}
-              onDelete={handleDeleteEmployee}
-              selectedEmployeeId={selectedEmployeeId}
-              onSelectEmployee={setSelectedEmployeeId}
-            />
+            {/* 일별 타임라인 (날짜 선택 시 표시) */}
+            {selectedDate && (
+              <DailyTimeline
+                date={selectedDate}
+                schedules={schedules}
+                employees={employees}
+                onClose={() => setSelectedDate(null)}
+              />
+            )}
 
-            {/* 월별 정산 */}
-            <MonthlySummary
-              currentDate={currentDate}
-              schedules={schedules}
-            />
+            {/* 알바생 관리 */}
+            {!selectedDate && (
+              <>
+                <EmployeeManager
+                  employees={employees}
+                  onAdd={handleAddEmployee}
+                  onUpdate={handleUpdateEmployee}
+                  onDelete={handleDeleteEmployee}
+                  selectedEmployeeId={selectedEmployeeId}
+                  onSelectEmployee={setSelectedEmployeeId}
+                />
+
+                {/* 월별 정산 */}
+                <MonthlySummary
+                  currentDate={currentDate}
+                  schedules={schedules}
+                />
+              </>
+            )}
           </div>
         </div>
       </main>

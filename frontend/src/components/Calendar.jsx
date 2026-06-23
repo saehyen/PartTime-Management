@@ -69,7 +69,8 @@ function Calendar({
   onDeleteSchedule,
   onDateChange,
   storeHours,
-  selectedEmployeeId
+  selectedEmployeeId,
+  onDateClick
 }) {
   const [showModal, setShowModal] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState(null);
@@ -93,19 +94,35 @@ function Calendar({
   }, [schedules]);
 
   // 스케줄 데이터를 FullCalendar 이벤트 형식으로 변환
-  const events = schedules.map(schedule => ({
-    id: schedule.id,
-    title: `${schedule.employee_name}`,
-    start: schedule.start_time,
-    end: schedule.end_time,
-    backgroundColor: schedule.color,
-    borderColor: schedule.color,
-    extendedProps: {
-      employeeId: schedule.employee_id,
-      employeeName: schedule.employee_name,
-      hourlyRate: schedule.hourly_rate
-    }
-  }));
+  const events = schedules.map(schedule => {
+    // 로컬 시간 문자열을 Date 객체로 변환 (타임존 변환 방지)
+    const parseLocalTime = (timeString) => {
+      // "2024-06-23T10:00:00" 형식을 파싱
+      const parts = timeString.split(/[T-: ]/);
+      return new Date(
+        parseInt(parts[0]), // year
+        parseInt(parts[1]) - 1, // month (0-indexed)
+        parseInt(parts[2]), // day
+        parseInt(parts[3] || 0), // hour
+        parseInt(parts[4] || 0), // minute
+        parseInt(parts[5] || 0)  // second
+      );
+    };
+
+    return {
+      id: schedule.id,
+      title: `${schedule.employee_name}`,
+      start: parseLocalTime(schedule.start_time),
+      end: parseLocalTime(schedule.end_time),
+      backgroundColor: schedule.color,
+      borderColor: schedule.color,
+      extendedProps: {
+        employeeId: schedule.employee_id,
+        employeeName: schedule.employee_name,
+        hourlyRate: schedule.hourly_rate
+      }
+    };
+  });
 
   // 날짜 범위 선택 (드래그)
   const handleDateSelect = (selectInfo) => {
@@ -122,11 +139,23 @@ function Calendar({
   // 이벤트 클릭
   const handleEventClick = (clickInfo) => {
     const event = clickInfo.event;
+    
+    // Date 객체를 로컬 시간 문자열로 변환
+    const formatLocalDateTime = (date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+      return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+    };
+    
     setSelectedSchedule({
       id: event.id,
       employee_id: event.extendedProps.employeeId,
-      start_time: event.start.toISOString(),
-      end_time: event.end.toISOString()
+      start_time: formatLocalDateTime(event.start),
+      end_time: formatLocalDateTime(event.end)
     });
     setSelectedInfo(null);
     setShowModal(true);
@@ -199,6 +228,44 @@ function Calendar({
     onDateChange(dateInfo.start);
   };
 
+  // 날짜 셀 클릭 핸들러
+  const handleDateClick = (info) => {
+    // 월별 뷰에서만 날짜 클릭 시 타임라인 표시
+    const calendarApi = calendarRef.current?.getApi();
+    if (calendarApi && calendarApi.view.type === 'dayGridMonth') {
+      if (onDateClick) {
+        onDateClick(info.date);
+      }
+    }
+  };
+
+  // 월별 뷰에서 이벤트 내용 커스터마이즈
+  const renderEventContent = (eventInfo) => {
+    const { event, view } = eventInfo;
+    
+    // 월별 뷰에서만 커스터마이즈
+    if (view.type === 'dayGridMonth') {
+      const formatTime = (date) => {
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${hours}:${minutes}`;
+      };
+
+      return (
+        <div className="text-xs truncate px-1">
+          <span className="font-semibold">
+            {formatTime(event.start)}-{formatTime(event.end)}
+          </span>
+          {' '}
+          <span>{event.title}</span>
+        </div>
+      );
+    }
+
+    // 주간/일별 뷰는 기본 렌더링
+    return null;
+  };
+
   return (
     <>
       {selectedEmployeeId && (
@@ -228,13 +295,13 @@ function Calendar({
           center: 'title',
           right: 'dayGridMonth,timeGridWeek,timeGridDay'
         }}
-        locale="ko"
+        locale="en"
         timeZone="local"
         buttonText={{
-          today: '오늘',
-          month: '월',
-          week: '주',
-          day: '일'
+          today: 'Today',
+          month: 'Month',
+          week: 'Week',
+          day: 'Day'
         }}
         firstDay={1}
         height="auto"
@@ -251,6 +318,9 @@ function Calendar({
         eventDrop={handleEventDrop}
         eventResize={handleEventResize}
         datesSet={handleDatesSet}
+        dateClick={handleDateClick}
+        eventContent={renderEventContent}
+        eventOrder="start,-duration,title"
         slotDuration="00:30:00"
         snapDuration="00:15:00"
         dayHeaderFormat={{
