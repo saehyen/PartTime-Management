@@ -37,6 +37,7 @@ function EmployeeManager({ employees, onAdd, onUpdate, onDelete }) {
       onAdd(data);
     }
 
+    // 폼 초기화 및 닫기
     setFormData({ name: '', hourly_rate: '', color: COLORS[0] });
     setShowForm(false);
   };

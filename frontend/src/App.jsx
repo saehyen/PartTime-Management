@@ -34,11 +34,15 @@ function App() {
       const year = currentDate.getFullYear();
       const month = currentDate.getMonth();
       
-      const startDate = new Date(year, month, 1).toISOString();
-      const endDate = new Date(year, month + 1, 0, 23, 59, 59).toISOString();
+      // 전달 마지막 주부터 다음달 첫 주까지 포함 (캘린더 뷰에 보이는 모든 날짜)
+      const startDate = new Date(year, month - 1, 15); // 전달 중순
+      const endDate = new Date(year, month + 2, 15); // 다다음달 중순
 
       const response = await axios.get(`${API_URL}/schedules`, {
-        params: { start: startDate, end: endDate }
+        params: { 
+          start: startDate.toISOString(), 
+          end: endDate.toISOString() 
+        }
       });
       setSchedules(response.data);
     } catch (error) {
@@ -59,8 +63,9 @@ function App() {
   const handleAddEmployee = async (employee) => {
     try {
       const response = await axios.post(`${API_URL}/employees`, employee);
+      // UI에 즉시 추가
       setEmployees([...employees, response.data]);
-      alert('알바생이 추가되었습니다.');
+      // alert 제거 - 자동으로 목록에 추가됨
     } catch (error) {
       console.error('알바생 추가 실패:', error);
       alert('알바생 추가에 실패했습니다.');
@@ -71,9 +76,11 @@ function App() {
   const handleUpdateEmployee = async (id, employee) => {
     try {
       const response = await axios.put(`${API_URL}/employees/${id}`, employee);
+      // UI에서 즉시 업데이트
       setEmployees(employees.map(e => e.id === id ? response.data : e));
-      fetchSchedules(); // 스케줄 새로고침 (시급 변경 반영)
-      alert('알바생 정보가 수정되었습니다.');
+      // 스케줄도 업데이트 (시급 변경 반영)
+      fetchSchedules();
+      // alert 제거
     } catch (error) {
       console.error('알바생 수정 실패:', error);
       alert('알바생 수정에 실패했습니다.');
@@ -88,9 +95,11 @@ function App() {
 
     try {
       await axios.delete(`${API_URL}/employees/${id}`);
+      // UI에서 즉시 제거
       setEmployees(employees.filter(e => e.id !== id));
-      fetchSchedules(); // 스케줄 새로고침
-      alert('알바생이 삭제되었습니다.');
+      // 스케줄도 새로고침
+      fetchSchedules();
+      // alert 제거
     } catch (error) {
       console.error('알바생 삭제 실패:', error);
       alert('알바생 삭제에 실패했습니다.');
@@ -101,6 +110,7 @@ function App() {
   const handleAddSchedule = async (schedule) => {
     try {
       const response = await axios.post(`${API_URL}/schedules`, schedule);
+      // UI에 즉시 추가
       setSchedules([...schedules, response.data]);
     } catch (error) {
       console.error('스케줄 추가 실패:', error);
@@ -112,6 +122,7 @@ function App() {
   const handleUpdateSchedule = async (id, schedule) => {
     try {
       const response = await axios.put(`${API_URL}/schedules/${id}`, schedule);
+      // UI에서 즉시 업데이트
       setSchedules(schedules.map(s => s.id === id ? response.data : s));
     } catch (error) {
       console.error('스케줄 수정 실패:', error);
@@ -127,6 +138,7 @@ function App() {
 
     try {
       await axios.delete(`${API_URL}/schedules/${id}`);
+      // UI에서 즉시 제거
       setSchedules(schedules.filter(s => s.id !== id));
     } catch (error) {
       console.error('스케줄 삭제 실패:', error);

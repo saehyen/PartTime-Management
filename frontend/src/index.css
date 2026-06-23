@@ -129,13 +129,33 @@ body {
   font-weight: 600;
 }
 
-/* 시간 표시 글씨체 */
+/* 시간 표시 글씨체 - 더 이쁘게 */
+.fc-timegrid-slot-label {
+  font-family: 'SF Pro Display', 'Inter', -apple-system, system-ui, sans-serif !important;
+  font-weight: 600 !important;
+  font-size: 0.875rem !important;
+  color: #6b7280 !important;
+  letter-spacing: -0.01em !important;
+}
+
+.dark .fc-timegrid-slot-label {
+  color: #9ca3af !important;
+}
+
 .fc-timegrid-slot-label-cushion {
-  font-family: 'Inter', -apple-system, system-ui, sans-serif;
-  font-weight: 500;
-  font-size: 0.875rem;
+  padding: 0 8px !important;
 }
 
 .fc-col-header-cell-cushion {
-  font-weight: 600;
+  font-family: 'SF Pro Display', 'Inter', -apple-system, system-ui, sans-serif !important;
+  font-weight: 700 !important;
+  font-size: 0.9375rem !important;
+  padding: 8px 4px !important;
+}
+
+/* 날짜 숫자 글씨체 */
+.fc-daygrid-day-number,
+.fc-col-header-cell-cushion {
+  font-feature-settings: 'tnum' !important;
+  font-variant-numeric: tabular-nums !important;
 }

@@ -108,15 +108,18 @@ app.get('/api/schedules', (req, res) => {
 
     const params = [];
     if (start && end) {
-      query += ' WHERE s.start_time >= ? AND s.end_time <= ?';
-      params.push(start, end);
+      // 시작 시간이 범위 내에 있거나, 종료 시간이 범위 내에 있거나, 범위를 완전히 포함하는 경우
+      query += ' WHERE (s.start_time <= ? AND s.end_time >= ?)';
+      params.push(end, start);
     }
 
     query += ' ORDER BY s.start_time';
 
     const schedules = db.prepare(query).all(...params);
+    console.log(`스케줄 조회: ${start} ~ ${end}, ${schedules.length}개 발견`);
     res.json(schedules);
   } catch (error) {
+    console.error('스케줄 조회 에러:', error);
     res.status(500).json({ error: error.message });
   }
 });
